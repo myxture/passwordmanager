@@ -121,14 +121,18 @@ std::string setFilename(bool write) {
 std::string setFilename(std::string&& filename, bool write) {
     if (filename.find(".pwd") != filename.length() - 4 || filename.size() < 4)
         filename += ".pwd";
-    if (write && std::ifstream{filename}.is_open()) {
-        if (askYesNo("A file with that name already exists. Do you want to overwrite it?")) {
-            std::cout << "Target file: " << filename << std::endl;
-            return filename;
-        } else
-            return setFilename(write);
+    std::cout << "Target file: " << filename << std::endl;
+    if (write) {
+        if (std::ifstream{filename}.is_open()) {
+            if (!askYesNo("A file with that name already exists. Do you want to overwrite it?"))
+                return setFilename(write);
+        }
+        return filename;
     } else {
-        std::cout << "Target file: " << filename << std::endl;
+        if (!std::ifstream{filename}.is_open()) {
+            std::cout << "The file doesn't exist!" << std::endl;
+            return setFilename(write);
+        }
         return filename;
     }
 }
