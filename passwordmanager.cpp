@@ -1,5 +1,8 @@
 #include "passwordmanager.hpp"
 
+#define CHAR_LOWEST 33
+#define CHAR_HIGHEST 126
+
 int main(int argc, char** argv) {
     std::string action;
     if (argc == 1) {
@@ -39,7 +42,9 @@ void newPassword(const std::string& filename) {
     while (masterPassword.length() < passwordToStore.length())
         masterPassword += masterPassword;
     for (int i = 0; i < passwordToStore.length(); ++i)
-        passwordToStore[i] += masterPassword[i];
+        passwordToStore[i] = passwordToStore[i] + masterPassword[i] - CHAR_LOWEST > CHAR_HIGHEST ?
+                             passwordToStore[i] + masterPassword[i] - CHAR_HIGHEST - 1 :
+                             passwordToStore[i] + masterPassword[i] - CHAR_LOWEST;
     passwordFile << passwordToStore;
 }
 
@@ -74,13 +79,15 @@ void readPassword(std::string&& filename) {
     while (masterPassword.length() < codedPassword.length())
         masterPassword += masterPassword;
     for (int i = 0; i < codedPassword.length(); ++i)
-        codedPassword[i] -= masterPassword[i];
+        codedPassword[i] = codedPassword[i] - masterPassword[i] + CHAR_LOWEST < CHAR_LOWEST ?
+                           codedPassword[i] - masterPassword[i] + CHAR_HIGHEST + 1 :
+                           codedPassword[i] - masterPassword[i] + CHAR_LOWEST;
     std::cout << codedPassword;
 }
 
 void generatePassword(int n) {
     std::mt19937 engine{std::random_device{}()};
-    std::uniform_int_distribution<int> dist{33, 126};
+    std::uniform_int_distribution<int> dist{CHAR_LOWEST, CHAR_HIGHEST};
     std::string password;
     do {
         do {
