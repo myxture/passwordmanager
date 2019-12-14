@@ -170,15 +170,9 @@ bool askYesNo(std::string&& message) {
     return c == 'y';
 }
 
-bool isAlphanumeric(char c) {
-    return (c >= 48 && c <=  57) ||
-           (c >= 65 && c <=  90) ||
-           (c >= 97 && c <= 122);
-}
-
 int numberOfNonAlphanumeric(std::string& s) {
     int num = 0;
     for (char c : s)
-        num += !isAlphanumeric(c);
+        num += !std::isalnum(c);
     return num;
 }

@@ -23,7 +23,6 @@ std::string setFilename(std::string&&, bool);
 std::string acquirePassword(const std::string &type);
 
 bool askYesNo(std::string&&);
-bool isAlphanumeric(char);
 int numberOfNonAlphanumeric(std::string&);
 
 #endif // PASSWORDMANAGER
