@@ -61,7 +61,7 @@ void readPassword(std::string&& filename) {
     HANDLE hStdin = GetStdHandle(STD_INPUT_HANDLE);
     DWORD mode = 0;
     GetConsoleMode(hStdin, &mode);
-    SetConsoleMode(hStdin, mode & (~ENABLE_ECHO_INPUT));
+    SetConsoleMode(hStdin, mode & ~ENABLE_ECHO_INPUT);
 #else
     termios oldt;
     tcgetattr(STDIN_FILENO, &oldt);
@@ -75,14 +75,13 @@ void readPassword(std::string&& filename) {
 #else
     tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
 #endif
-    std::cout << std::endl;
     while (masterPassword.length() < codedPassword.length())
         masterPassword += masterPassword;
     for (int i = 0; i < codedPassword.length(); ++i)
         codedPassword[i] = codedPassword[i] - masterPassword[i] + CHAR_LOWEST < CHAR_LOWEST ?
                            codedPassword[i] - masterPassword[i] + CHAR_HIGHEST + 1 :
                            codedPassword[i] - masterPassword[i] + CHAR_LOWEST;
-    std::cout << codedPassword;
+    std::cout << std::endl << codedPassword << std::endl;
 }
 
 void generatePassword(int n) {
@@ -149,7 +148,7 @@ std::string acquirePassword(const std::string &type) {
 #endif
     while (true) {
 #ifdef _WIN32
-        SetConsoleMode(hStdin, mode & (~ENABLE_ECHO_INPUT));
+        SetConsoleMode(hStdin, mode & ~ENABLE_ECHO_INPUT);
 #else
         newt.c_lflag &= ~ECHO;
         tcsetattr(STDIN_FILENO, TCSANOW, &newt);
