@@ -3,6 +3,13 @@
 #define CHAR_LOWEST 33
 #define CHAR_HIGHEST 126
 
+#ifdef _WIN32
+HANDLE hStdin;
+DWORD mode;
+#else
+termios oldt, newt;
+#endif
+
 int main(int argc, char** argv) {
     std::string action;
     if (argc == 1) {
@@ -14,6 +21,15 @@ int main(int argc, char** argv) {
         std::getline(std::cin, action);
     } else
         action = argv[1];
+#ifdef _WIN32
+    hStdin = GetStdHandle(STD_INPUT_HANDLE);
+    mode = 0;
+    GetConsoleMode(hStdin, &mode);
+#else
+    tcgetattr(STDIN_FILENO, &oldt);
+    newt = oldt;
+    newt.c_lflag &= ~ECHO;
+#endif
     while (true) {
         if (action == std::string{"new"}) {
             argc > 2 ? newPassword(setFilename(argv[2], true)) :
@@ -57,24 +73,9 @@ void readPassword(std::string&& filename) {
         return;
     std::cout << "Master password: ";
     std::string masterPassword;
-#ifdef _WIN32
-    HANDLE hStdin = GetStdHandle(STD_INPUT_HANDLE);
-    DWORD mode = 0;
-    GetConsoleMode(hStdin, &mode);
-    SetConsoleMode(hStdin, mode & ~ENABLE_ECHO_INPUT);
-#else
-    termios oldt;
-    tcgetattr(STDIN_FILENO, &oldt);
-    termios newt = oldt;
-    newt.c_lflag &= ~ECHO;
-    tcsetattr(STDIN_FILENO, TCSANOW, &newt);
-#endif
+    setInputVisibility(false);
     std::getline(std::cin, masterPassword);
-#ifdef _WIN32
-    SetConsoleMode(hStdin, mode);
-#else
-    tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
-#endif
+    setInputVisibility(true);
     while (masterPassword.length() < codedPassword.length())
         masterPassword += masterPassword;
     for (int i = 0; i < codedPassword.length(); ++i)
@@ -137,33 +138,15 @@ std::string setFilename(std::string&& filename, bool write) {
 }
 
 std::string acquirePassword(const std::string &type) {
-#ifdef _WIN32
-    HANDLE hStdin = GetStdHandle(STD_INPUT_HANDLE);
-    DWORD mode = 0;
-    GetConsoleMode(hStdin, &mode);
-#else
-    termios oldt;
-    tcgetattr(STDIN_FILENO, &oldt);
-    termios newt = oldt;
-#endif
     while (true) {
-#ifdef _WIN32
-        SetConsoleMode(hStdin, mode & ~ENABLE_ECHO_INPUT);
-#else
-        newt.c_lflag &= ~ECHO;
-        tcsetattr(STDIN_FILENO, TCSANOW, &newt);
-#endif
+        setInputVisibility(false);
         std::cout << "Set " << type << ": ";
         std::string password;
         std::getline(std::cin, password);
         std::cout << std::endl << "Confirm " << type << ": ";
         std::string passwordCheck;
         std::getline(std::cin, passwordCheck);
-#ifdef _WIN32
-        SetConsoleMode(hStdin, mode);
-#else
-        tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
-#endif
+        setInputVisibility(true);
         std::cout << std::endl;
         if (password == passwordCheck)
             return password;
@@ -185,4 +168,20 @@ int numberOfNonAlphanumeric(std::string& s) {
     for (char c : s)
         num += !std::isalnum(c);
     return num;
+}
+
+void setInputVisibility(bool visibility) {
+    if (visibility) {
+#ifdef _WIN32
+        SetConsoleMode(hStdin, mode & ~ENABLE_ECHO_INPUT);
+#else
+        tcsetattr(STDIN_FILENO, TCSANOW, &newt);
+#endif
+    } else {
+#ifdef _WIN32
+        SetConsoleMode(hStdin, mode);
+#else
+        tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
+#endif
+    }
 }

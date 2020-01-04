@@ -23,5 +23,6 @@ std::string acquirePassword(const std::string &type);
 
 bool askYesNo(std::string&&);
 int numberOfNonAlphanumeric(std::string&);
+void setInputVisibility(bool);
 
 #endif // PASSWORDMANAGER
