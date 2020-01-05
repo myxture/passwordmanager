@@ -170,18 +170,18 @@ int numberOfNonAlphanumeric(std::string& s) {
     return num;
 }
 
-void setInputVisibility(bool visibility) {
-    if (visibility) {
-#ifdef _WIN32
-        SetConsoleMode(hStdin, mode & ~ENABLE_ECHO_INPUT);
-#else
-        tcsetattr(STDIN_FILENO, TCSANOW, &newt);
-#endif
-    } else {
+void setInputVisibility(bool visible) {
+    if (visible) {
 #ifdef _WIN32
         SetConsoleMode(hStdin, mode);
 #else
         tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
+#endif
+    } else {
+#ifdef _WIN32
+        SetConsoleMode(hStdin, mode & ~ENABLE_ECHO_INPUT);
+#else
+        tcsetattr(STDIN_FILENO, TCSANOW, &newt);
 #endif
     }
 }
